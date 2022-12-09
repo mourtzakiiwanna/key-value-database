@@ -5,150 +5,129 @@ import trie
 import json
 import math
 
-# Helper Function
-def dictModifier(myDict, prefix=None, result={}):
-    '''
-    'Unpacks' and returns a dictionary using all the nested key-values
+# Returns the error message
+def create_error_message():
+    print("\nSome arguments are missing. Please provide the required info in this order: kvServer.py -a -p , where : \n\n -a is the IP address of the server, \n -p is the PORT of the server")
 
-    @myDict: dictionary to be modified
-    @prefix: prefix string to maintain
-    @result: final dictionary
-    '''
+# Returns a dictionary with all the key-values (recursively concatenate the keys of the dictionary)
+def dict_flatten(kvDict, prefix = None, result={}):
 
-    for key in myDict:
+    for key in kvDict:
         if prefix is None:
             prefix_str = (str(key))
         else:
             prefix_str = (prefix, str(key))
             prefix_str = '.'.join(prefix_str)
 
-        if isinstance(myDict[key],dict):
-            dictModifier(myDict[key], prefix_str, result)
+        if isinstance(kvDict[key],dict):
+            dict_flatten(kvDict[key], prefix_str, result)
 
         if prefix_str not in result:
-            result[prefix_str] = myDict[key]
+            result[prefix_str] = kvDict[key]
 
     return result
 
 
 def main(argv):
-    try:
-        opts, _ = getopt.getopt(argv, "hk:a:p:")
-    except getopt.GetoptError:
-        print("\nInvalid arguments. See usage below:\n\n")
-        print('kvBroker -s serverFile.txt -i dataToIndex.txt -k <int>\n')
-        sys.exit(2)
+    
+    opts, _ = getopt.getopt(argv, "hk:a:p:")
 
-    if len(opts) < 2:
-        print("\nSome arguments are missing. See usage below:\n\n")
-        print('python3 kvServer.py -a <ip_address> -p <port>\n')
+    if len(opts) != 2:
+        create_error_message()
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '-h':
-            print(
-                'python3 kvServer.py -a <ip_address> -p <port>\n')
-            sys.exit()
-        elif opt in ("-a"):
+        if opt in ("-a"):
             ip_address = arg
         elif opt in ("-p"):
-            PORT = int(arg)
+            port = int(arg)
 
-    database = trie.Trie()
-
-    # create a socket object
+    trie_structure = trie.Trie()
     s = socket.socket()
-    print("Socket successfully created!")
-    # bind to port
-    s.bind((ip_address, PORT))
-    print("Socket binded to %s." % (PORT))
-
-    # socket in listening mode (up to 5 connections)
+    s.bind((ip_address, port))
     s.listen(5)
-    print("Socket is listening...")
-    while True:
-        # Establish connection with client.
-        print('All good')
+    print("The socket is ready..")
+
+    while (True):
+        # connection with client socket 
         c, addr = s.accept()
         print('Got connection from: ', addr)
 
-        dataFromClient = c.recv(4098)
+        data_from_client = c.recv(4098)
 
-        # if client data was empty ignore query handling
-        if(len(dataFromClient) <= 0):
+        if(len(data_from_client) <= 0):
             continue
 
-        dataFromClient = dataFromClient.decode().split()
+        data_from_client = data_from_client.decode().split()
+        # command can be PUT,GET,QUERY,DELETE,COMPUTE
+        command = data_from_client[0]
+        # request is the whole part after the command 
+        request = data_from_client[1]
 
-        # ========= PUT Request ==========
-        if dataFromClient[0] == "PUT":
-            print(
-                f"Received PUT request. Adding to database:\n{dataFromClient[1]}\n")
+        # PUT request
+        if command == "PUT":
+            # parsing 
+            parsing_var = "{" + request + "}"
+            parsing_var = parsing_var.replace("'", "\"")
+            parsing_var = json.loads(parsing_var)
 
-            temp = "{" + dataFromClient[1] + "}"
-            temp = temp.replace("'", "\"")
-            temp = json.loads(temp)
+            print(f"Adding data to the trie_structure:\n{request}\n")
 
-
-            # If high-level keys exist already, don't overwrite
-            if not database.search(str(list(temp.keys())[0]))[0]:
-                myDict = dictModifier(temp)
-
-                for key in myDict:
-                    database.insert(key, myDict[key])
+            # in case the high-level key already exists
+            temp = str(list(parsing_var.keys())[0])
+            if not trie_structure.search(temp)[0]:
+                kvDict = dict_flatten(parsing_var)
+                for key in kvDict:
+                    trie_structure.insert(key, kvDict[key])
                 response = "OK"
             else:
-                response = "High-level key already exist. Overwrite is not supported."
+                response = "High-level key already exists."
 
-        # ========= GET Request ==========
-        elif dataFromClient[0] == "GET":
-            if "." in dataFromClient[1]:
+        # GET request
+        elif command == "GET":
+            if "." in request:
                 response = "ERROR - No high-level key specified"
             else:
-                result = database.search(dataFromClient[1])
-                if result[0]:  # if key found
-                    response = dataFromClient[1] + ": " + str(result[1])
+                result = trie_structure.search(request)
+                # if key found
+                if result[0]: 
+                    response = request + ": " + str(result[1])
                 else:
-                    response = "NOT FOUND - " + \
-                        str(dataFromClient[1]) + " is not a high-level key"
+                    response = "Key " + str(request) + " was not found - is not a high-level key.\n"
 
-        # ========= QUERY Request ==========
-        elif dataFromClient[0] == "QUERY":
-            result = database.search(dataFromClient[1])
-
+        # QUERY request
+        elif command == "QUERY":
+            result = trie_structure.search(request)
+            # if key found
             if result[0]:  
-                response = dataFromClient[1] + ": " + str(result[1])
+                response = request + ": " + str(result[1])
             else:
-                response = "NOT FOUND - " + \
-                    str(dataFromClient[1]) + " is not a key"
+                response = "Key " + str(request) + " was not found - is not a high-level key.\n"
 
-        # ========= COMPUTE Request ==========
-        elif dataFromClient[0] == "COMPUTE":
-            result = database.compute(dataFromClient[1],dataFromClient[3:])
-
+        # COMPUTE request
+        elif command == "COMPUTE":
+            result = trie_structure.compute(data_from_client[1],data_from_client[3:])
+            # if key/keys found
             if result[0]:
-                response = dataFromClient[1] + ": " + str(result[1])
+                response = request + ": " + str(result[1])
             else:
-                response = "NOT FOUND - " + \
-                    str(dataFromClient[1]) + " is not a key"
-           
+                response = "Key " + str(request) + " was not found - is not a key.\n"
 
-        # ========= DELETE Request ==========
-        elif dataFromClient[0] == "DELETE":
-            result = database.delete(dataFromClient[1])
-
-            if "." in dataFromClient[1]:
+        # DELETE request
+        elif command == "DELETE":
+            result = trie_structure.delete(request)
+            if "." in request:
                 response = "ERROR - No high-level key specified"
             else:
+                # id key is deleted
                 if result:  
-                    response = dataFromClient[1] + " has been deleted"
+                    response = request + " has been successfully deleted."
                 else:
-                    response = "NOT FOUND - " + \
-                        str(dataFromClient[1]) + " is not a key"
+                    response = "Key " + str(request) + " was not found - is not a key.\n"
 
-        # ========= ELSE ==================
+        # ELSE
         else:
-            response = "ERROR - No request of this type available"
+            response = "ERROR - This command is not available."
 
         c.send(response.encode())
 
