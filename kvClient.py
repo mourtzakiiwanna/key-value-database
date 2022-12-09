@@ -6,200 +6,167 @@ import errno
 import random
 import time
 
+# Returns the error message
+def create_error_message():
+    print("\nSome arguments are missing. Please provide the required info in this order: kvClient.py -s -i -k, where : \n\n -s is a file with a space separated list of server IPs and their respective ports, \n -i is a file containing data that was output from the previous part of the project, \n -k is the replication factor, i.e. how many different servers will have the same replicated data")
 
-def checkServerStatus(serversInfo, k):
-    '''
-    Returns 1 if k servers are down
-    Returns 2 if at least one server is down
-    Prints warning message if at least two servers are down
-
-    @k: replication factor 
-    @serversinfo: list containing the servers info 
-    '''
-
-    counter = 0
-    for server in serversInfo:
-        ip_address = server[0]
-        PORT = int(server[1])
+# Returns 0 if k servers are down and 1 if at least one server is down
+def check_servers(servers, k):
+ 
+    count = 0
+    for server in servers:
         s = socket.socket()
-
+        ip_address = server[0]
+        port = int(server[1])
+        
         try:
-            s.connect((ip_address, PORT))
+            s.connect((ip_address, port))
         except:
-            counter += 1
+            count += 1
         s.close()
 
-    if counter >= 2:
-        print(
-            "\n> WARNING: Two or more servers are down. Correct output not guaranteed.\n")
+    # for DELETE function, it will not be done correctly if at least one server is down 
+    if count >= 2:
+        print("\n> Two or more servers are down.\n")
 
-    if counter == k:
-        print("\n> kvBroker can't operate with k servers down.")
+    if count == k:
+        print("\n> k servers are down, and the operation cannot be correctly executed.")
+        return 0
+
+    if count >= 1:
         return 1
 
-    if counter >= 1:
-        return 2
-
-    return 0
-
-
-def getRandServerIndices(k, serversInfo):
-    '''
-    Returns a list of random indices of servers from serversinfo
-
-    @k: replication factor - number of indices returned
-    @serversinfo: list containing the servers info 
-    '''
-
-    indexes = []
-    for _ in range(k):
-        r = random.randint(0, len(serversInfo)-1)
-        while(r in indexes):
-            r = random.randint(0, len(serversInfo)-1)
-        indexes.append(r)
-
-    return indexes
+    return 2
 
 
 def main(argv):
-    try:
-        opts, _ = getopt.getopt(argv, "hk:s:i:k:")
-    except getopt.GetoptError:
-        print("\nInvalid arguments. See usage below:\n\n")
-        print('python3 kvBroker.py -s serverFile.txt -i dataToIndex.txt -k <int>\n')
+  
+    opts, _ = getopt.getopt(argv, "hk:s:i:k:")
+
+    # if some arguments are missing, the error message will appear 
+    if len(opts) != 3:
+        create_error_message()
         sys.exit(2)
 
-    if len(opts) < 3:
-        print("\nSome arguments are missing. See usage below:\n\n")
-        print('python3 kvBroker.py -s serverFile.txt -i dataToIndex.txt -k <int>\n')
-        sys.exit(2)
-
+    # initializing the variables with the values given from the user 
     for opt, arg in opts:
-        if opt == '-h':
-            print(
-                'python3 kvBroker.py -s serverFile.txt -i dataToIndex.txt -k <int>\n')
-            sys.exit()
-        elif opt in ("-s"):
+        if opt in ("-s"):
             serverfile = arg
         elif opt in ("-i"):
             dataToIndex = arg
         elif opt in ("-k"):
             k = int(arg)
 
-    with open("dataToIndex.txt", 'r') as f:
-        filedata = f.read()
-
-    filedata = filedata.replace('->',':')
-    filedata = filedata.replace('|',',')
-
-    with open("dataToIndex.txt", 'w') as f:
-        f.write(filedata)
-        
-    # Reading output data from the previous part
-    with open(dataToIndex) as f:
-        data = [line.rstrip(" \\\n").replace(" ", "") for line in f]
-
-    # Parse servers info
-    serversInfo = []
+    # reading the file with the servers' info 
+    servers = []
     with open(serverfile) as f:
         for line in f:
-            serversInfo.append(line.split())
-    if(len(serversInfo) < k):
-        print("Not as many servers as the k number!\nPlease reduce -k or change -s file.")
+            servers.append(line.split())
+    
+    # checks if the servers provided are less than the 'k' number. If so, the program must exit.
+    if(len(servers) < k):
+        print("The 'k' number (replication factor) must be bigger or equal to the amount of servers provided in the file.")
         sys.exit()
 
-    # ============= Server Indexing  ==========
-    print("\nStarting indexing of servers...\n")
+    # reading the ouput file from the first part of the project 
+    with open(dataToIndex) as f:
+        output_data = [line.rstrip(" \\\n").replace(" ", "") for line in f]
 
-    # Connect to servers and send all data
-    for i in data:
-        # fetch a list of random k servers to send data
-        serverIndices = getRandServerIndices(k, serversInfo)
-        for index in serverIndices:
+    print("\nIndexing of servers has just started...\n")
 
-            ip_address = serversInfo[index][0]
-            PORT = int(serversInfo[index][1])
+    # looping through every line of the file with the output data 
+    for i in output_data:
+        
+        # choosing randomly k servers to send the data, "server_indexes" holds these servers 
+        server_indexes = []
+        for _ in range(k):
+            r = random.randint(0, len(servers)-1)
+            while(r in server_indexes):
+                r = random.randint(0, len(servers)-1)
+            server_indexes.append(r)
+        
+        # indexing every server that has been choosen abov (server_indexes)
+        for j in server_indexes:
+            
             s = socket.socket()
+            ip_address = servers[j][0]
+            port = int(servers[j][1])
+
             try:
-                s.connect((ip_address, PORT))
+                # socket connection 
+                s.connect((ip_address, port))
+                sending_data = "PUT " + i
+                s.send(sending_data.encode())
+                data_from_server = s.recv(4098)
+                print(f"{ip_address}:{port}: {data_from_server.decode()}")
 
-                dataToSend = "PUT " + i
-                s.send(dataToSend.encode())
-
-                dataFromServer = s.recv(4098)
-                print(
-                    f"Response from {ip_address}:{PORT}: {dataFromServer.decode()}")
             except socket.error as e:
                 if e.errno == errno.ECONNREFUSED:
-                    print(f"Connection refused for {ip_address}:{PORT}")
+                    print(f"{ip_address}:{port} : ERROR")
                 else:
-                    print("Caught exception socket.error : %s" % e)
+                    print("Caught an exception : %s" % e)
             s.close()
-        print("====================================")
-    print("\nIndexing finished!\n")
 
-    # Check if servers are down
-    if checkServerStatus(serversInfo, k) == 1:
-        print("\nExitting...")
+    print("\nIndexing of servers is finished!\n")
+
+    # checking if all servers (k) are down
+    if check_servers(servers, k) == 0:
+        print("\nThe program is exiting...")
         return
 
-    # =========== Serving Queries ==============
-    print("-Type a query:\n")
+    print("Please provide a query:\n")
+
+    # reading user input 
     for line in sys.stdin:
+
+        # Check if all servers are down
+        if (check_servers(servers, k)) == 0:
+            break
+
         if ("" == line.rstrip()):
+            print("\n> Please provide a supported request.")
             continue
-        # exit keyword
-        if ('EXIT' == line.rstrip()):
-            break
 
-        # Check if servers are down
-        if (checkServerStatus(serversInfo, k)) == 1:
-            break
+        command = line.split()
 
-        # Disable further PUT requests after indexing
-        temp = line.split()
-        if temp[0] == "PUT":
+        # not letting the user to perform 'DELETE' requests when at least one server is down 
+        if command[0] == "DELETE":
+            if (check_servers(servers, k)) == 1:
+                print("DELETE request cannot be executed because at least one server is down.")
+                print("\nPlease provide a query:\n")
+                continue
+
+        # not letting the user to perform other 'PUT' requests 
+        if command[0] == "PUT":
             print("\n> PUT requests are not supported after server indexing.")
             continue
 
-        if temp[0] == "DELETE":
-            if (checkServerStatus(serversInfo, k)) == 2:
-                print("\n========== Query Results ===========")
-                print(
-                    "> DELETE request cannot be reliably executed because at least one server is down.")
-                print("====================================\n")
-                print("\n-Type a query:\n")
-                continue
-
-        print("\n========== Query Results ===========")
-
-        # Send request to all servers linearly
-        for server in serversInfo:
-            ip_address = server[0]
-            PORT = int(server[1])
+        # send request to all servers 
+        for server in servers:
             s = socket.socket()
+            ip_address = server[0]
+            port = int(server[1])
 
             try:
-                s.connect((ip_address, PORT))
-                dataToSend = line
-                s.send(dataToSend.encode())
+                # connect to socket 
+                s.connect((ip_address, port))
+                sending_data = line
+                s.send(sending_data.encode())
 
-                dataFromServer = s.recv(4098)
-                print(
-                    f"> Response from {ip_address}:{PORT}:\n-> {dataFromServer.decode()}")
-
-                if ":" in dataFromServer.decode():
+                data_from_server = s.recv(4098)
+                print(f"\nResponse from {ip_address}:{port} :\n\n{data_from_server.decode()}")
+                if ":" in data_from_server.decode():
                     break
             except socket.error as e:
                 if e.errno == errno.ECONNREFUSED:
-                    print(f"> Connection refused for {ip_address}:{PORT}")
+                    print(f"{ip_address}:{port} : ERROR")
                 else:
-                    print("> Caught exception socket.error : %s" % e)
+                    print("> Caught an exception: %s" % e)
             s.close()
-        print("====================================\n")
-        print("\n-Type a query:\n")
+    
+        print("\nPlease provide a query:\n")
 
-    print("\nExitting...\n")
+    print("\nThe program is exiting...\n")
 
 
 if __name__ == "__main__":

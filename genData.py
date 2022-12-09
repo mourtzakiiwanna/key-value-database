@@ -4,11 +4,11 @@ import random
 import getopt
 
 # Returns the error message
-def createErrorMessage():
-    print("\nSome arguments are missing. Please provide the required info in this order: genData.py -k keyFile.txt -n -d -l -m , where : \n\n -k keyFile.txt is a file containing a space-separated list of key names and their data types \n -n indicates the number of lines that you would like to generate \n -d is the maximum level of nesting \n -m is the maximum number of keys inside each value \n -l is the maximum length of a string value whenever you need to generate a string")
+def create_error_message():
+    print("\nSome arguments are missing. Please provide the required info in this order: genData.py -k -n -d -l -m , where : \n\n -k is a file containing a space-separated list of key names and their data types, \n -n indicates the number of lines that you would like to generate, \n -d is the maximum level of nesting, \n -m is the maximum number of keys inside each value, \n -l is the maximum length of a string value whenever you need to generate a string")
 
 # Returns a random value of specific length based on key type
-def createRandomValue(max_string_length,type):
+def create_random_value(max_string_length,type):
 
     max_length = int(max_string_length)
     min = pow(10, max_length-1)
@@ -24,7 +24,7 @@ def createRandomValue(max_string_length,type):
     return str(random_value)
 
 # Returns the payload generated for every high-level key (key0,key1..)
-def createPayload(keyTypes, nesting, max_keys, max_string_length):
+def create_payload(keyTypes, nesting, max_keys, max_string_length):
 
     indexes = []
     # randomly choose the max key number for this high-level key 
@@ -48,13 +48,13 @@ def createPayload(keyTypes, nesting, max_keys, max_string_length):
         if nesting > 0:
             isNesting = random.choice([True, False])
 
-        # if we will apply nest, we recursively call the 'createPayload' reducing every time the nesting level 
+        # if we will apply nest, we recursively call the 'create_payload' reducing every time the nesting level 
         if(nesting > 0 and isNesting):
-            payload[keyTypes[index][0]] = createPayload(keyTypes, nesting - 1, max_keys, max_string_length)
+            payload[keyTypes[index][0]] = create_payload(keyTypes, nesting - 1, max_keys, max_string_length)
         # else if we won't apply nesting, we just fill in with a random key value based on key type 
         else:
             type = keyTypes[index][1]
-            value = createRandomValue(max_string_length,type)
+            value = create_random_value(max_string_length,type)
             payload[keyTypes[index][0]] = value
 
     return payload
@@ -65,9 +65,10 @@ def main(argv):
     opts, _ = getopt.getopt(argv, "hk:n:d:l:m:")
 
     if len(opts) != 5:
-        createErrorMessage()
+        create_error_message()
         sys.exit(2)
 
+    # initializing the variables with the values given from the user 
     for opt, arg in opts:
         if opt in ("-k"):
             key_file = arg
@@ -89,12 +90,12 @@ def main(argv):
     # payload generation
     payload = {}
     for j in range(lines):
-        payload['\'key' + str(j)+'\''] = createPayload(keys,nesting_level, max_keys, max_string_length)
+        payload['\'key' + str(j)+'\''] = create_payload(keys,nesting_level, max_keys, max_string_length)
 
     # write generated data to file
     with open("dataToIndex.txt", 'w') as f:
         for d in payload:
-            f.write(d + "-> " + str(payload[d]))
+            f.write(d + ":" + str(payload[d]))
             f.write('\n')
     
     """

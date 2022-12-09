@@ -1,59 +1,70 @@
 import math
 
-class Node:
+class TrieNode:
     def __init__(self, payload=None):
-        self.children = {}
-        self.isFinal = False
+        # the payload stored in this node
         self.payload = payload
+        # whether this is the end of a word
+        self.isEndOfWord = False
+        # a dictionary of child nodes
+        self.children = {}
 
 class Trie:
     def __init__(self):
-        # root node
-        self.root = Node()
+        self.root = TrieNode()
 
+    # INSERT function 
     def insert(self, key, payload):
-        curr_node = self.root
+        node = self.root
 
+        # Loop through each character in the key
         for char in key:
-            # If a character is not found, create a new node in the trie
-            if char not in curr_node.children:
-                curr_node.children[char] = Node()
-            curr_node = curr_node.children[char]
+            # If a char is not found, create a new node in the trie
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            
+            # moving to the next node (the next character)
+            node = node.children[char]
 
-        # Leaf node
-        curr_node.payload = payload
-        curr_node.isFinal = True
+        node.payload = payload
+        # Mark the end of a word
+        node.isEndOfWord = True
         return
 
+    # DELETE function 
     def delete(self, key):
-        curr_node = self.root
+        node = self.root
 
+        # Loop through each character in the key
         for char in key:
-            # If a character is not found, create a new node in the trie
-            if char not in curr_node.children:
+            if char not in node.children:
                 return False
-            curr_node = curr_node.children[char]
 
-        # Clear children of high-level key
-        curr_node.children.clear()
-        curr_node.payload = None
-        curr_node.isFinal = False
+            # Moving to the next node (the next character)
+            node = node.children[char]
+        
+        node.payload = None
+        node.isEndOfWord = False
+        # Delete the children of high-level key
+        node.children.clear()
         return True
 
-    # Search key in the trie
+    # SEARCH function (also used in QUERY)
     def search(self, key):
-        curr_node = self.root
+        node = self.root
 
         for char in key:
-            if char in curr_node.children:
-                curr_node = curr_node.children[char]
+            if char in node.children:
+                node = node.children[char]
             else:
+                # key is not present 
                 return [False, None]
 
-        return [curr_node != None and curr_node.isFinal, curr_node.payload]
+        # Returns true/false if the key was found and a payload with its payload (if found)
+        return [node != None and node.isEndOfWord, node.payload]
 
 
-    # Query function
+    # COMPUTE function 
     def compute(self, math_formula,query):
         if "cos" in math_formula:
             math_formula = math_formula.replace("cos","math.cos")
