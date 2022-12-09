@@ -1,0 +1,11 @@
+name string
+age int
+height float
+weight float
+address string
+country string
+town string
+gender string
+education string
+kids int
+marriage_status string
