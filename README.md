@@ -62,7 +62,7 @@ KV Broker accepts queries from the user, as shown in the examples below: <br/>
   $ COMPUTE 2-x WHERE x = QUERY key2.age
   $ COMPUTE 2^x WHERE x = QUERY key2.age
   $ COMPUTE 2*x+3 WHERE x = QUERY key2.age
-  $ COMPUTE 2/(x+3*(y+z)) WHERE x = QUERY key2.age AND y = QUERY key2.age AND z = QUERY key2.age
+  $ COMPUTE x*(y+z) WHERE x = QUERY key2.age AND y = QUERY key2.age AND z = QUERY key2.age
   $ COMPUTE log(2*(x+3)) WHERE x = QUERY key2.age
   $ COMPUTE cos(x)-tan(2*y+3) WHERE x = key2.age AND y = QUERY key2.age
   $ EXIT
