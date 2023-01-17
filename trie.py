@@ -6,7 +6,7 @@ class TrieNode:
         self.payload = payload
         # whether this is the end of a word
         self.isEndOfWord = False
-        # a dictionary of child nodes
+        # a dictionary of children nodes
         self.children = {}
 
 class Trie:
@@ -17,12 +17,11 @@ class Trie:
     def insert(self, key, payload):
         node = self.root
 
-        # Loop through each character in the key
+        # loop through each character in the key
         for char in key:
-            # If a char is not found, create a new node in the trie
+            # if a char is not found, create a new node in the trie
             if char not in node.children:
                 node.children[char] = TrieNode()
-            
             # moving to the next node (the next character)
             node = node.children[char]
 
@@ -35,17 +34,16 @@ class Trie:
     def delete(self, key):
         node = self.root
 
-        # Loop through each character in the key
+        # loop through each character in the key
         for char in key:
             if char not in node.children:
                 return False
-
-            # Moving to the next node (the next character)
+            # moving to the next node (the next character)
             node = node.children[char]
         
         node.payload = None
         node.isEndOfWord = False
-        # Delete the children of high-level key
+        # delete the children of high-level key
         node.children.clear()
         return True
 
@@ -53,6 +51,7 @@ class Trie:
     def search(self, key):
         node = self.root
 
+        # loop through each character in the key
         for char in key:
             if char in node.children:
                 node = node.children[char]
@@ -60,12 +59,14 @@ class Trie:
                 # key is not present 
                 return [False, None]
 
-        # Returns true/false if the key was found and a payload with its payload (if found)
+        # returns true/false if the key was found and a payload with its payload (if found)
         return [node != None and node.isEndOfWord, node.payload]
 
 
     # COMPUTE function 
     def compute(self, math_formula,query):
+
+        # checks if the math formula contains trigonometric/logarithmic functions and replaces it with the actual math funcation 
         if "cos" in math_formula:
             math_formula = math_formula.replace("cos","math.cos")
         if "tan" in math_formula:
@@ -77,10 +78,13 @@ class Trie:
 
         query_str = ''.join(query)
         var_count = query_str.count('=')
+
+        # first case: query with only one variable (X)
         if var_count == 1:
             query_result = self.search(query[3])
             query_number_result = query_result[1]
-            # Check if X is int , or float
+
+            # check if X is int , or float
             if query_number_result.isdigit():
                 X = int(query_number_result)
                 x = int(query_number_result)
@@ -89,11 +93,13 @@ class Trie:
                 x = float(query_number_result)
 
             exists = query_number_result != None
-
+        
+        # second case: query with two variables (X,Y)
         elif var_count == 2:
             query_result_x = self.search(query[3])
             query_number_result_x = query_result_x[1]
-            # Check if X is int , or float
+            
+            # check if X is int , or float
             if query_number_result_x.isdigit():
                 X = int(query_number_result_x)
                 x = int(query_number_result_x)
@@ -103,7 +109,8 @@ class Trie:
 
             query_result_y = self.search(query[8])
             query_number_result_y = query_result_y[1]
-            # Check if X is int , or float
+
+            # check if Y is int , or float
             if query_number_result_y.isdigit():
                 Y = int(query_number_result_y)
                 Y = int(query_number_result_y)
@@ -112,12 +119,13 @@ class Trie:
                 Y = float(query_number_result_y)   
 
             exists = query_number_result_x != None and query_number_result_y != None
-           
-            
+        
+        # third case: query with three variables (X,Y,Z)
         elif var_count == 3:
             query_result_x = self.search(query[3])
             query_number_result_x = query_result_x[1]
-            # Check if X is int , or float
+
+            # check if X is int , or float
             if query_number_result_x.isdigit():
                 X = int(query_number_result_x)
                 x = int(query_number_result_x)
@@ -127,7 +135,8 @@ class Trie:
 
             query_result_y = self.search(query[8])
             query_number_result_y = query_result_y[1]
-            # Check if Y is int , or float
+
+            # check if Y is int , or float
             if query_number_result_y.isdigit():
                 Y = int(query_number_result_y)
                 Y = int(query_number_result_y)
@@ -137,7 +146,8 @@ class Trie:
 
             query_result_z = self.search(query[13])
             query_number_result_z = query_result_z[1]
-            # Check if Z is int , or float
+
+            # check if Z is int , or float
             if query_number_result_z.isdigit():
                 Z = int(query_number_result_z)
                 Z = int(query_number_result_z)

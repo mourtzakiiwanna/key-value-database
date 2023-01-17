@@ -5,6 +5,8 @@ weight float
 address string
 country string
 town string
+postal_code int
+profession string 
 gender string
 education string
 kids int

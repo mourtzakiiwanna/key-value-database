@@ -6,44 +6,11 @@ import errno
 import random
 import time
 
-# Returns the error message
-def create_error_message():
-    print("\nSome arguments are missing. Please provide the required info in this order: kvClient.py -s -i -k, where : \n\n -s is a file with a space separated list of server IPs and their respective ports, \n -i is a file containing data that was output from the previous part of the project, \n -k is the replication factor, i.e. how many different servers will have the same replicated data")
-
-# Returns 0 if k servers are down and 1 if at least one server is down
-def check_servers(servers, k):
- 
-    count = 0
-    for server in servers:
-        s = socket.socket()
-        ip_address = server[0]
-        port = int(server[1])
-        
-        try:
-            s.connect((ip_address, port))
-        except:
-            count += 1
-        s.close()
-
-    # for DELETE function, it will not be done correctly if at least one server is down 
-    if count >= 2:
-        print("\n> Two or more servers are down.\n")
-
-    if count == k:
-        print("\n> k servers are down, and the operation cannot be correctly executed.")
-        return 0
-
-    if count >= 1:
-        return 1
-
-    return 2
-
-
 def main(argv):
   
     opts, _ = getopt.getopt(argv, "hk:s:i:k:")
 
-    # if some arguments are missing, the error message will appear 
+    # checking user input and throw error message if any argyment is missing 
     if len(opts) != 3:
         create_error_message()
         sys.exit(2)
@@ -85,7 +52,7 @@ def main(argv):
                 r = random.randint(0, len(servers)-1)
             server_indexes.append(r)
         
-        # indexing every server that has been choosen abov (server_indexes)
+        # indexing every server that has been choosen above (server_indexes)
         for j in server_indexes:
             
             s = socket.socket()
@@ -119,7 +86,7 @@ def main(argv):
     # reading user input 
     for line in sys.stdin:
 
-        # Check if all servers are down
+        # check if all servers are down
         if (check_servers(servers, k)) == 0:
             break
 
@@ -167,6 +134,39 @@ def main(argv):
         print("\nPlease provide a query:\n")
 
     print("\nThe program is exiting...\n")
+
+# returns the error message
+def create_error_message():
+    print("\nSome arguments are missing. Please provide the required info in this order: kvClient.py -s -i -k, where : \n\n -s is a file with a space separated list of server IPs and their respective ports, \n -i is a file containing data that was output from the previous part of the project, \n -k is the replication factor, i.e. how many different servers will have the same replicated data")
+
+# returns 0 if k servers are down and 1 if at least one server is down
+def check_servers(servers, k):
+ 
+    count = 0
+    for server in servers:
+        s = socket.socket()
+        ip_address = server[0]
+        port = int(server[1])
+        
+        try:
+            s.connect((ip_address, port))
+        except:
+            count += 1
+        s.close()
+
+    # for DELETE function, it will not be done correctly if at least one server is down 
+    if count >= 2:
+        print("\n> Two or more servers are down.\n")
+
+    if count == k:
+        print("\n> k servers are down, and the operation cannot be correctly executed.")
+        return 0
+
+    if count >= 1:
+        return 1
+
+    return 2
+
 
 
 if __name__ == "__main__":
