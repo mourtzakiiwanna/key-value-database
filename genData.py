@@ -5,9 +5,13 @@ import getopt
 
 def main(argv):
     
-    opts, _ = getopt.getopt(argv, "hk:n:d:l:m:")
-
     # checking user input and throw error message if any argyment is missing 
+    try:
+        opts, _ = getopt.getopt(argv, "hk:n:d:l:m:")
+    except getopt.GetoptError:
+        create_error_message()
+        sys.exit(2)
+
     if len(opts) != 5:
         create_error_message()
         sys.exit()
@@ -33,9 +37,9 @@ def main(argv):
         keys.append(i.split())
 
     # generating random data and store them in 'payload' dict 
-    # setting high-level keys as key1, key2..
+    # setting high-level keys as key0, key1..
     payload = {}
-    for i in range(1,lines):
+    for i in range(lines):
         payload['\'key' + str(i)+'\''] = create_payload(keys,nesting_level, max_keys, max_string_length)
 
     # writing generated data to 'dataToIndex' file
@@ -43,7 +47,8 @@ def main(argv):
     f = open(outputFile, "w")
     
     for key in payload:
-        f.write(key + " : " + str(payload[key]) + "\n")
+        f.write(key + ":" + str(payload[key]))
+        f.write('\n')
 
     print("\nData was successfully generated.")
 

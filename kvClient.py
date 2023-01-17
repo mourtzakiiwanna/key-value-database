@@ -1,16 +1,18 @@
 import sys
 import getopt
-import json
 import socket
 import errno
 import random
-import time
 
 def main(argv):
   
-    opts, _ = getopt.getopt(argv, "hk:s:i:k:")
-
     # checking user input and throw error message if any argyment is missing 
+    try:
+        opts, _ = getopt.getopt(argv, "hk:s:i:k:")
+    except getopt.GetoptError:
+        create_error_message()
+        sys.exit(2)
+
     if len(opts) != 3:
         create_error_message()
         sys.exit(2)
@@ -40,6 +42,7 @@ def main(argv):
         output_data = [line.rstrip(" \\\n").replace(" ", "") for line in f]
 
     print("\nIndexing of servers has just started...\n")
+    print("====================================")
 
     # looping through every line of the file with the output data 
     for i in output_data:
@@ -65,23 +68,23 @@ def main(argv):
                 sending_data = "PUT " + i
                 s.send(sending_data.encode())
                 data_from_server = s.recv(4098)
-                print(f"{ip_address}:{port}: {data_from_server.decode()}")
+                print(f"Response from {ip_address}:{port}: {data_from_server.decode()}")
 
             except socket.error as e:
                 if e.errno == errno.ECONNREFUSED:
-                    print(f"{ip_address}:{port} : ERROR")
+                    print(f"Response from {ip_address}:{port} : ERROR")
                 else:
                     print("Caught an exception : %s" % e)
             s.close()
-
+        print("====================================")
     print("\nIndexing of servers is finished!\n")
 
     # checking if all servers (k) are down
     if check_servers(servers, k) == 0:
-        print("\nThe program is exiting...")
+        print("\nThe program is exitting...")
         return
 
-    print("Please provide a query:\n")
+    print("- Please provide a query:\n")
 
     # reading user input 
     for line in sys.stdin:
@@ -90,21 +93,33 @@ def main(argv):
         if (check_servers(servers, k)) == 0:
             break
 
-        if ("" == line.rstrip()):
-            print("\n> Please provide a supported request.")
+        # the user exits the program
+        if (line.rstrip() == "EXIT"):
+            s.close()
+            break
+
+        # the user input is empty 
+        if (line.rstrip() == ""):
+            print("\n- Please provide a non-empty query:")
             continue
 
         command = line.split()
 
+        # if user input is only the command (GET, QUERY etc. without key provided)
+        if (len(command) == 1):
+            print("\nNo key specified.")
+            print("\n- Please provide a well-specified query:\n")
+            continue
+
         # not letting the user to perform 'DELETE' requests when at least one server is down 
-        if command[0] == "DELETE":
+        if (command[0] == "DELETE" or command[0] == "delete"):
             if (check_servers(servers, k)) == 1:
                 print("DELETE request cannot be executed because at least one server is down.")
                 print("\nPlease provide a query:\n")
                 continue
 
         # not letting the user to perform other 'PUT' requests 
-        if command[0] == "PUT":
+        if (command[0] == "PUT" or command[0] == "put"):
             print("\n> PUT requests are not supported after server indexing.")
             continue
 
@@ -117,21 +132,26 @@ def main(argv):
             try:
                 # connect to socket 
                 s.connect((ip_address, port))
+                # line is the user input 
                 sending_data = line
+                # send the data to the server 
                 s.send(sending_data.encode())
 
                 data_from_server = s.recv(4098)
-                print(f"\nResponse from {ip_address}:{port} :\n\n{data_from_server.decode()}")
-                if ":" in data_from_server.decode():
-                    break
+                print("\n====================================")
+                print(f"Response from {ip_address}:{port} :\n\n{data_from_server.decode()}")
+                print("====================================")
+                
             except socket.error as e:
                 if e.errno == errno.ECONNREFUSED:
-                    print(f"{ip_address}:{port} : ERROR")
+                    print(f"Response from{ip_address}:{port} : ERROR")
                 else:
                     print("> Caught an exception: %s" % e)
+            
+            # the socket is closed 
             s.close()
-    
-        print("\nPlease provide a query:\n")
+        
+        print("\n- Please provide a query:\n")
 
     print("\nThe program is exiting...\n")
 
@@ -142,7 +162,7 @@ def create_error_message():
 # returns 0 if k servers are down and 1 if at least one server is down
 def check_servers(servers, k):
  
-    count = 0
+    down = 0
     for server in servers:
         s = socket.socket()
         ip_address = server[0]
@@ -150,24 +170,22 @@ def check_servers(servers, k):
         
         try:
             s.connect((ip_address, port))
-        except:
-            count += 1
+        except Exception:
+            down += 1
         s.close()
 
     # for DELETE function, it will not be done correctly if at least one server is down 
-    if count >= 2:
-        print("\n> Two or more servers are down.\n")
+    if down >= 2:
+        print("\nTwo or more servers are down.\n")
 
-    if count == k:
-        print("\n> k servers are down, and the operation cannot be correctly executed.")
+    if down == k:
+        print("\nAll servers are down, and the operation cannot be correctly executed.")
         return 0
 
-    if count >= 1:
+    if down >= 1:
         return 1
 
     return 2
-
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])
