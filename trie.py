@@ -17,7 +17,7 @@ class Trie:
     def insert(self, key, payload):
         node = self.root
 
-        # loop through each character in the key
+        # looping through each character in the key
         for char in key:
             # if a char is not found, create a new node in the trie
             if char not in node.children:
@@ -26,7 +26,7 @@ class Trie:
             node = node.children[char]
 
         node.payload = payload
-        # Mark the end of a word
+        # marking the end of a word
         node.isEndOfWord = True
         return
 
@@ -34,7 +34,7 @@ class Trie:
     def delete(self, key):
         node = self.root
 
-        # loop through each character in the key
+        # looping through each character in the key
         for char in key:
             if char not in node.children:
                 return False
@@ -43,7 +43,7 @@ class Trie:
         
         node.payload = None
         node.isEndOfWord = False
-        # delete the children of high-level key
+        # deleting the children of high-level key
         node.children.clear()
         return True
 
@@ -59,106 +59,131 @@ class Trie:
                 # key is not present 
                 return [False, None]
 
-        # returns true/false if the key was found and a payload with its payload (if found)
+        # returning true/false if the key was found and a payload with its payload (if found)
         return [node != None and node.isEndOfWord, node.payload]
 
 
     # COMPUTE function 
+    # math_formula is the math expression (e.g. X+2) and query is the value of X (e.g. X = QUERY key0.age)
     def compute(self, math_formula,query):
 
-        # checks if the math formula contains trigonometric/logarithmic functions and replaces it with the actual math funcation 
-        if "cos" in math_formula:
-            math_formula = math_formula.replace("cos","math.cos")
-        if "tan" in math_formula:
-            math_formula = math_formula.replace("tan","math.tan")
-        if "sin" in math_formula:
-            math_formula = math_formula.replace("sin","math.sin")   
-        if "log" in math_formula:
-            math_formula = math_formula.replace("log","math.log10")    
+        try:
+            # checks if the math formula contains trigonometric/logarithmic functions and replaces it with the actual math function 
+            if "cos" in math_formula:
+                math_formula = math_formula.replace("cos","math.cos")
+            if "tan" in math_formula:
+                math_formula = math_formula.replace("tan","math.tan")
+            if "sin" in math_formula:
+                math_formula = math_formula.replace("sin","math.sin")   
+            if "log" in math_formula:
+                math_formula = math_formula.replace("log","math.log10")    
 
-        query_str = ''.join(query)
-        var_count = query_str.count('=')
+            # checking if the math formula contains power function [we will replace the x^y with math.pow(x,y)]
+            power_symbol = math_formula.find('^')  
+            # if power function exists 
+            if (power_symbol != -1):
+                base = math_formula[power_symbol-1]
+                exponent = math_formula[power_symbol+1]
+                # if exponent is for example (Y+2), we want to include all the parenthesis index
+                if (exponent == "("):
+                    res = math_formula.split("^", 1)
+                    temp = res[1]
+                    end_of_exponent_index = temp.find(")")
+                    exponent = temp[0:end_of_exponent_index+1] 
+                 
+            math_formula = math_formula.replace(f"{base}^{exponent}",f"math.pow({base},{exponent})")
+           
+            query_str = ''.join(query)
+            var_count = query_str.count('=')
 
-        # first case: query with only one variable (X)
-        if var_count == 1:
-            query_result = self.search(query[3])
-            query_number_result = query_result[1]
+            # first case: query with only one variable (X)
+            if var_count == 1:
+                query_result = self.search(query[3])
+                query_number_result = query_result[1]
 
-            # check if X is int , or float
-            if query_number_result.isdigit():
-                X = int(query_number_result)
-                x = int(query_number_result)
-            else: 
-                X = float(query_number_result)
-                x = float(query_number_result)
+                # check if X is int , or float
+                if query_number_result.isdigit():
+                    X = int(query_number_result)
+                    x = int(query_number_result)
+                else: 
+                    X = float(query_number_result)
+                    x = float(query_number_result)
 
-            exists = query_number_result != None
-        
-        # second case: query with two variables (X,Y)
-        elif var_count == 2:
-            query_result_x = self.search(query[3])
-            query_number_result_x = query_result_x[1]
+                exists = query_number_result != None
             
-            # check if X is int , or float
-            if query_number_result_x.isdigit():
-                X = int(query_number_result_x)
-                x = int(query_number_result_x)
-            else: 
-                X = float(query_number_result_x)
-                x = float(query_number_result_x)    
+            # second case: query with two variables (X,Y)
+            elif var_count == 2:
+                query_result_x = self.search(query[3])
+                query_number_result_x = query_result_x[1]
+                
+                # check if X is int , or float
+                if query_number_result_x.isdigit():
+                    X = int(query_number_result_x)
+                    x = int(query_number_result_x)
+                else: 
+                    X = float(query_number_result_x)
+                    x = float(query_number_result_x)    
 
-            query_result_y = self.search(query[8])
-            query_number_result_y = query_result_y[1]
+                query_result_y = self.search(query[8])
+                query_number_result_y = query_result_y[1]
+                
+                # check if Y is int , or float
+                if query_number_result_y.isdigit():
+                    Y = int(query_number_result_y)
+                    y = int(query_number_result_y)
+                else: 
+                    Y = float(query_number_result_y)
+                    y = float(query_number_result_y)   
 
-            # check if Y is int , or float
-            if query_number_result_y.isdigit():
-                Y = int(query_number_result_y)
-                Y = int(query_number_result_y)
-            else: 
-                Y = float(query_number_result_y)
-                Y = float(query_number_result_y)   
+                exists = query_number_result_x != None and query_number_result_y != None
+            
+            # third case: query with three variables (X,Y,Z)
+            elif var_count == 3:
+                query_result_x = self.search(query[3])
+                query_number_result_x = query_result_x[1]
+            
+                # check if X is int , or float
+                if query_number_result_x.isdigit():
+                    X = int(query_number_result_x)
+                    x = int(query_number_result_x)
+                else: 
+                    X = float(query_number_result_x)
+                    x = float(query_number_result_x)    
 
-            exists = query_number_result_x != None and query_number_result_y != None
+                query_result_y = self.search(query[8])
+                query_number_result_y = query_result_y[1]
+               
+                # check if Y is int , or float
+                if query_number_result_y.isdigit():
+                    Y = int(query_number_result_y)
+                    y = int(query_number_result_y)
+                else: 
+                    Y = float(query_number_result_y)
+                    y = float(query_number_result_y)    
+
+                query_result_z = self.search(query[13])
+                query_number_result_z = query_result_z[1]
+               
+                # check if Z is int , or float
+                if query_number_result_z.isdigit():
+                    Z = int(query_number_result_z)
+                    z = int(query_number_result_z)
+                else: 
+                    Z = float(query_number_result_z)
+                    z = float(query_number_result_z)    
+
+                exists = query_number_result_x != None and query_number_result_y != None and query_number_result_z != None
+            
+            # evaluating the created math formula 
+            result = eval(math_formula)
+            return [exists, str(result)] 
+
+        # handling possible errors occured in the COMPUTE function 
+        except Exception: 
+            return (True,"An error occured with this operation.\n")
+
+
         
-        # third case: query with three variables (X,Y,Z)
-        elif var_count == 3:
-            query_result_x = self.search(query[3])
-            query_number_result_x = query_result_x[1]
-
-            # check if X is int , or float
-            if query_number_result_x.isdigit():
-                X = int(query_number_result_x)
-                x = int(query_number_result_x)
-            else: 
-                X = float(query_number_result_x)
-                x = float(query_number_result_x)    
-
-            query_result_y = self.search(query[8])
-            query_number_result_y = query_result_y[1]
-
-            # check if Y is int , or float
-            if query_number_result_y.isdigit():
-                Y = int(query_number_result_y)
-                Y = int(query_number_result_y)
-            else: 
-                Y = float(query_number_result_y)
-                Y = float(query_number_result_y)    
-
-            query_result_z = self.search(query[13])
-            query_number_result_z = query_result_z[1]
-
-            # check if Z is int , or float
-            if query_number_result_z.isdigit():
-                Z = int(query_number_result_z)
-                Z = int(query_number_result_z)
-            else: 
-                Z = float(query_number_result_z)
-                Z = float(query_number_result_z)    
-
-            exists = query_number_result_x != None and query_number_result_y != None and query_number_result_z != None
-        
-        result = eval(math_formula)
-        return [exists, str(result)] 
 
 
         
