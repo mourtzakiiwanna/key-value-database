@@ -40,7 +40,7 @@ where,<br/>
 
 The above commands can run from different terminals in order to set up multiple servers simultaneously. 
 
-**KV Broker** <br/> 
+**KV Client** <br/> 
 After servers are launched, we can populate the database with the generated data. <br/>
 
 To launch the client, use the following command:
