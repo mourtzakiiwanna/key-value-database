@@ -57,24 +57,13 @@ def main(argv):
 def create_error_message():
     print("\nSome arguments are missing. Please provide the required info in this order: genData.py -k -n -d -l -m , where : \n\n -k is a file containing a space-separated list of key names and their data types, \n -n indicates the number of lines that you would like to generate, \n -d is the maximum level of nesting, \n -m is the maximum number of keys inside each value, \n -l is the maximum length of a string value whenever you need to generate a string")
 
-# returns a random value of specific length based on key type
-# exaple: if max_string_length is 4 -> String 'Qvmq', int '6574', float '1202.93'
-def create_random_value(max_string_length, type):
-
-    max_length = int(max_string_length)
-    min = pow(10, max_length-1)
-    max = pow(10, max_length) - 1
-
-    if type == "string":
-        random_value = ''.join(random.choice(string.ascii_letters) for _ in range(max_string_length))
-    elif type == "int":
-        random_value = random.randint(min, max)
-    elif type == "float":
-        random_value = (round(random.uniform(min,max), 2))
-
+# returns a random string of specific length 
+def create_random_value(max_string_length):
+    
+    random_value = ''.join(random.choice(string.ascii_letters) for _ in range(max_string_length))
     return str(random_value)
 
-# returns the payload generated for every high-level key (key1,key2..)
+# returns the payload generated for every high-level key (key0,key1..)
 def create_payload(keyTypes, nesting, max_keys, max_string_length):
 
     # this list will store the keys we have already used in order not to use them twice 
@@ -111,7 +100,13 @@ def create_payload(keyTypes, nesting, max_keys, max_string_length):
         # else if we won't apply nesting, we just fill in with a random key value based on key type 
         else:
             type = keyTypes[key][1]
-            value = create_random_value(max_string_length,type)
+            if (type == "string"):
+                value = create_random_value(max_string_length)
+            elif(type == "int"):
+                value = str(random.randint(1, 100))
+            elif(type == "float"):
+                value = str(round(random.uniform(1, 200), 2))
+            
             payload[keyTypes[key][0]] = value
 
     return payload

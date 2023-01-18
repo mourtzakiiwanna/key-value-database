@@ -32,9 +32,9 @@ def main(argv):
         for line in f:
             servers.append(line.split())
     
-    # checks if the servers provided are less than the 'k' number. If so, the program must exit.
+    # checking if the servers provided are less than the 'k' number. If so, the program must exit.
     if(len(servers) < k):
-        print("The 'k' number (replication factor) must be bigger or equal to the amount of servers provided in the file.")
+        print("\nThe 'k' number (replication factor) must be bigger or equal to the amount of servers provided in the file.")
         sys.exit()
 
     # reading the ouput file from the first part of the project 
@@ -51,6 +51,7 @@ def main(argv):
         server_indexes = []
         for _ in range(k):
             r = random.randint(0, len(servers)-1)
+            # we don't want to have duplicated servers 
             while(r in server_indexes):
                 r = random.randint(0, len(servers)-1)
             server_indexes.append(r)
@@ -94,7 +95,7 @@ def main(argv):
             break
 
         # the user exits the program
-        if (line.rstrip() == "EXIT"):
+        if (line.rstrip() == "EXIT" or line.rstrip() == "exit"):
             s.close()
             break
 
@@ -114,7 +115,7 @@ def main(argv):
         # not letting the user to perform 'DELETE' requests when at least one server is down 
         if (command[0] == "DELETE" or command[0] == "delete"):
             if (check_servers(servers, k)) == 1:
-                print("DELETE request cannot be executed because at least one server is down.")
+                print("\nDELETE request cannot be executed because at least one server is down.")
                 print("\nPlease provide a query:\n")
                 continue
 
@@ -138,9 +139,11 @@ def main(argv):
                 s.send(sending_data.encode())
 
                 data_from_server = s.recv(4098)
-                print("\n====================================")
-                print(f"Response from {ip_address}:{port} :\n\n{data_from_server.decode()}")
                 print("====================================")
+                print(f"Response from {ip_address}:{port} :\n\n{data_from_server.decode()}")
+                if ":" in data_from_server.decode():
+                    break
+                #print("====================================")
                 
             except socket.error as e:
                 if e.errno == errno.ECONNREFUSED:
@@ -150,7 +153,7 @@ def main(argv):
             
             # the socket is closed 
             s.close()
-        
+        print("====================================")
         print("\n- Please provide a query:\n")
 
     print("\nThe program is exiting...\n")

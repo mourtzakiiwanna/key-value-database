@@ -26,7 +26,7 @@ def main(argv):
     # creating a Trie object 
     trie_structure = trie.Trie()
     s = socket.socket()
-    print("Socket successfully created!")
+    print("\nSocket successfully created!")
     s.bind((ip_address, port))
     # allowing oup to 5 connections 
     s.listen(5)
@@ -84,7 +84,7 @@ def main(argv):
                 if result[0]: 
                     response = request + ": " + str(result[1])
                 else:
-                    response = "Key " + str(request) + " was not found - is not a high-level key.\n"
+                    response = "Key '" + str(request) + "' was not found - is not a high-level key.\n"
 
         # QUERY request
         elif (command == "QUERY" or command == "query"):
@@ -93,7 +93,7 @@ def main(argv):
             if result[0]:  
                 response = request + ": " + str(result[1])
             else:
-                response = "Key " + str(request) + " was not found - is not a key.\n"
+                response = "Key '" + str(request) + "' was not found - is not a key.\n"
 
         # COMPUTE request
         elif (command == "COMPUTE" or command == "compute"):
@@ -102,19 +102,19 @@ def main(argv):
             if result[0]:
                 response = request + ": " + str(result[1])
             else:
-                response = "Key " + str(request) + " was not found - is not a key.\n"
+                response = "Key '" + str(request) + "' was not found - is not a key.\n"
 
         # DELETE request
         elif (command == "DELETE" or command == "delete"):
-            result = trie_structure.delete(request)
             if "." in request:
                 response = "No high-level key specified."
             else:
+                result = trie_structure.delete(request)
                 # id key is deleted
                 if result:  
                     response = request + " has been successfully deleted."
                 else:
-                    response = "Key " + str(request) + " was not found - is not a key.\n"
+                    response = "Key '" + str(request) + "' was not found - is not a key.\n"
         # ELSE
         else:
             response = "This request is not available.\n Supported requests: GET, QUERY, COMPUTE, DELETE, EXIT."
