@@ -14,10 +14,10 @@ The zip file contains all the source code, the input-output data files, this REA
 Run the following command to generate random data:
 
 ```bash
-  $ python3 genData.py -k keyFile.txt -n 1000 -d 3 -l 4 -m 5
+  $ python3 genData.py -k keyFile.txt -n 100 -d 3 -l 4 -m 5
 ```
 where, <br/>
--k: file (keyFile.txt) containing a list of key names and their data types that we can use for the data creation <br/>
+-k: file (keyFile.txt) containing a list of key names and their data types that can be used for the data creation <br/>
 -n: number of lines (i.e. separate data) that we would like to generate <br/>
 -d: maximum level of nesting <br/>
 -m: maximum number of keys inside each value <br/>
@@ -32,7 +32,7 @@ First of all, we need to launch the servers using the following commands:
 ```bash
   $ python3 kvServer.py -a 127.0.0.1 -p 8000 
   $ python3 kvServer.py -a 127.0.0.1 -p 8001 
-  $ python3 kvServer.py -a 123.2.3.4 -p 9000 
+  $ python3 kvServer.py -a 127.0.0.1 -p 8002 
 ```
 where,<br/>
 -a: ip_address <br/>
@@ -40,7 +40,7 @@ where,<br/>
 
 The above commands can run from different terminals in order to set up multiple servers simultaneously. 
 
-**KV Broker** <br/> 
+**KV Client** <br/> 
 After servers are launched, we can populate the database with the generated data. <br/>
 
 To launch the client, use the following command:
@@ -68,4 +68,4 @@ KV Broker accepts queries from the user, as shown in the examples below: <br/>
   $ EXIT
 ```
 The supported query commands are : GET, DELETE, QUERY, COMPUTE (addition, subtraction, division, multiplication, power, trigonometric/logarithmic functions for up to 3 variables which are queries). </br> </br>
-The "EXIT" query is used to exit the kvBroker.
+The "EXIT" command is used to exit the kvClient.
