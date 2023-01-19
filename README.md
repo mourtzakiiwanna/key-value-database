@@ -6,7 +6,7 @@ In this project we will be creating a simple version of a distributed, fault-tol
 
 • All libraries used are part of the python standard library.
 
-The zip file contains all the source code, the input-output data files, this README.md file and a pdf report with more details about the implementation. 
+The zip file contains all the source code, the input-output data files, this README file and a pdf report with more details about the implementation. 
 
 ## Instructions 
 ### Data Generation ###
