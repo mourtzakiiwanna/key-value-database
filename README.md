@@ -58,13 +58,13 @@ KV Broker accepts queries from the user, as shown in the examples below: <br/>
 ```bash
   $ GET key2
   $ DELETE key3
-  $ QUERY key4.age
-  $ COMPUTE 2-x WHERE x = QUERY key2.age
-  $ COMPUTE 2^x WHERE x = QUERY key2.age
-  $ COMPUTE 2*x+3 WHERE x = QUERY key2.age
-  $ COMPUTE 2/(x+3*(y+z)) WHERE x = QUERY key2.age AND y = QUERY key2.age AND z = QUERY key2.age
-  $ COMPUTE log(2*(x+3)) WHERE x = QUERY key2.age
-  $ COMPUTE cos(x)-tan(2*y+3) WHERE x = key2.age AND y = QUERY key2.age
+  $ QUERY key8.age
+  $ COMPUTE 2-X WHERE X = QUERY key8.age
+  $ COMPUTE 2^X WHERE X = QUERY key8.age
+  $ COMPUTE 2*X+3 WHERE X = QUERY key8.age
+  $ COMPUTE 2/(X+3*(Y+Z)) WHERE X = QUERY key8.age AND Y = QUERY key9.height AND Z = QUERY key1.height
+  $ COMPUTE log(2*(X+3)) WHERE x = QUERY key8.age
+  $ COMPUTE cos(X)-tan(2*Y+3) WHERE X = QUERY key8.age AND Y = QUERY key9.height
   $ EXIT
 ```
 The supported query commands are : GET, DELETE, QUERY, COMPUTE (addition, subtraction, division, multiplication, power, trigonometric/logarithmic functions for up to 3 variables which are queries). </br> </br>
