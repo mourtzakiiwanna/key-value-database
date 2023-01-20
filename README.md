@@ -59,10 +59,12 @@ KV Broker accepts queries from the user, as shown in the examples below: <br/>
   $ GET key2
   $ DELETE key3
   $ QUERY key7.age
-  $ COMPUTE 2-X WHERE X = QUERY key7.age
-  $ COMPUTE 2^X WHERE X = QUERY key7.age
+  $ COMPUTE X-2 WHERE X = QUERY key7.age
+  $ COMPUTE X^2 WHERE X = QUERY key7.age
   $ COMPUTE 2*X+3 WHERE X = QUERY key7.age
-  $ COMPUTE 2/(X+3*(Y+Z)) WHERE X = QUERY key7.age AND Y = QUERY key10.height AND Z = QUERY key8.weight
+  $ COMPUTE (X+5)*Y WHERE X = QUERY key7.age AND Y = QUERY key10.height
+  $ COMPUTE (X+Y)^(X+Y) WHERE X = QUERY key7.age AND Y = QUERY key10.height
+  $ COMPUTE 2/(X+3*(Y+Z)) WHERE X = QUERY key7.age AND Y = QUERY key10.height AND Z = QUERY key4.postal_code
   $ COMPUTE log(2*(X+3)) WHERE x = QUERY key7.age
   $ COMPUTE cos(X)-tan(2*Y+3) WHERE X = QUERY key7.age AND Y = QUERY key10.height
   $ EXIT
