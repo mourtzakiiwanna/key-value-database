@@ -14,7 +14,7 @@ The zip file contains all the source code, the input-output data files, this REA
 Run the following command to generate random data:
 
 ```bash
-  $ python3 genData.py -k keyFile.txt -n 100 -d 3 -l 4 -m 5
+  $ python3 genData.py -k keyFile.txt -n 15 -d 2 -l 10 -m 8
 ```
 where, <br/>
 -k: file (keyFile.txt) containing a list of key names and their data types that can be used for the data creation <br/>
